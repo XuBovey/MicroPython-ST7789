@@ -1,10 +1,11 @@
-from ST7735 import TFT
-from sysfont import sysfont
+from ST7789 import TFT
+# from sysfont import sysfont
 from machine import SPI,Pin
 import time
 import math
+
 spi = SPI(2, baudrate=20000000, polarity=0, phase=0, sck=Pin(14), mosi=Pin(13), miso=Pin(12))
-tft=TFT(spi,16,17,18)
+tft=TFT(spi,16,2,15)
 tft.initr()
 tft.rgb(True)
 
@@ -94,7 +95,7 @@ def testroundrects():
             h -= 6
             color += 1100
         color += 100
-
+"""
 def tftprinttest():
     tft.fill(TFT.BLACK);
     v = 30
@@ -125,14 +126,14 @@ def tftprinttest():
     tft.text((0, v), str(time.ticks_ms() / 1000), TFT.PURPLE, sysfont)
     v += sysfont["Height"]
     tft.text((0, v), " seconds.", TFT.WHITE, sysfont)
-
+"""
 def test_main():
     tft.fill(TFT.BLACK)
-    tft.text((0, 0), "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur adipiscing ante sed nibh tincidunt feugiat. Maecenas enim massa, fringilla sed malesuada et, malesuada sit amet turpis. Sed porttitor neque ut ante pretium vitae malesuada nunc bibendum. Nullam aliquet ultrices massa eu hendrerit. Ut sed nisi lorem. In vestibulum purus a tortor imperdiet posuere. ", TFT.WHITE, sysfont, 1)
-    time.sleep_ms(1000)
+    # tft.text((0, 0), "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur adipiscing ante sed nibh tincidunt feugiat. Maecenas enim massa, fringilla sed malesuada et, malesuada sit amet turpis. Sed porttitor neque ut ante pretium vitae malesuada nunc bibendum. Nullam aliquet ultrices massa eu hendrerit. Ut sed nisi lorem. In vestibulum purus a tortor imperdiet posuere. ", TFT.WHITE, sysfont, 1)
+    # time.sleep_ms(1000)
 
-    tftprinttest()
-    time.sleep_ms(4000)
+    # tftprinttest()
+    # time.sleep_ms(4000)
 
     testlines(TFT.YELLOW)
     time.sleep_ms(500)

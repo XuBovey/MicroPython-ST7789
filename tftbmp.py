@@ -1,12 +1,36 @@
-from ST7735 import TFT,TFTColor
+from ST7789 import TFT,TFTColor
 from machine import SPI,Pin
+import time
+
 spi = SPI(2, baudrate=20000000, polarity=0, phase=0, sck=Pin(14), mosi=Pin(13), miso=Pin(12))
-tft=TFT(spi,16,17,18)
+tft=TFT(spi,16,2,15)
 tft.initr()
 tft.rgb(True)
+tft.invertcolor(True)
 tft.fill(TFT.BLACK)
 
-f=open('test128x160.bmp', 'rb')
+# print("black")
+# time.sleep(5)
+# tft.fill(TFT.WHITE)
+# print("white")
+# time.sleep(5)
+# tft.fill(TFT.RED)
+# print("red")
+# time.sleep(5)
+# tft.fill(TFT.GREEN)
+# print("green")
+# time.sleep(5)
+# tft.fill(TFT.BLUE)
+# print("blue")
+# time.sleep(5)
+# tft.fill(TFT.YELLOW)
+# print("yellow")
+# time.sleep(5)
+
+lcd_w = 240
+lcd_h = 240
+f=open('test240x240.bmp', 'rb')
+
 if f.read(2) == b'BM':  #header
     dummy = f.read(8) #file size(4), creator bytes(4)
     offset = int.from_bytes(f.read(4), 'little')
@@ -24,8 +48,8 @@ if f.read(2) == b'BM':  #header
             else:
                 flip = True
             w, h = width, height
-            if w > 128: w = 128
-            if h > 160: h = 160
+            if w > lcd_w: w = lcd_w
+            if h > lcd_h: h = lcd_h
             tft._setwindowloc((0,0),(w - 1,h - 1))
             for row in range(h):
                 if flip:
