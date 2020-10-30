@@ -4,7 +4,7 @@
 
 根据硬件修改了IO口配置。
 
-适配屏幕：[中景园1.3寸tft 240X240](https://item.taobao.com/item.htm?spm=a1z09.2.0.0.61142e8dQBcOCq&id=610769461947&_u=u4l8200380e)
+适配屏幕：[中景园1.3寸tft 240X240](https://item.taobao.com/item.htm?spm=a1z09.2.0.0.61142e8dQBcOCq&id=610769461947&_u=u4l8200380e) [1.54寸ftf 240x240](https://item.taobao.com/item.htm?spm=a1z10.5-c-s.w4002-23140299472.12.51ab7921APhlp2&id=600467790218)
 
 This is a modified version of [boochow's ST7735.py](https://github.com/boochow/MicroPython-ST7735) ST7735 TFT LCD driver for MicroPython.
 

@@ -2,7 +2,7 @@ from ST7789 import TFT,TFTColor
 from machine import SPI,Pin
 import time
 
-spi = SPI(2, baudrate=20000000, polarity=0, phase=0, sck=Pin(14), mosi=Pin(13), miso=Pin(12))
+spi = SPI(1, baudrate=80000000, polarity=0, phase=0, sck=Pin(14), mosi=Pin(13), miso=Pin(12))
 tft=TFT(spi,16,2,15)
 tft.initr()
 tft.rgb(True)
@@ -51,6 +51,7 @@ if f.read(2) == b'BM':  #header
             if w > lcd_w: w = lcd_w
             if h > lcd_h: h = lcd_h
             tft._setwindowloc((0,0),(w - 1,h - 1))
+            colorData = bytearray(2*240)
             for row in range(h):
                 if flip:
                     pos = offset + (height - 1 - row) * rowsize
@@ -58,7 +59,16 @@ if f.read(2) == b'BM':  #header
                     pos = offset + row * rowsize
                 if f.tell() != pos:
                     dummy = f.seek(pos)
-                for col in range(w):
-                    bgr = f.read(3)
-                    tft._pushcolor(TFTColor(bgr[2],bgr[1],bgr[0]))
+                colorDataIndex = 0
+                readBgrNum = 6
+                for col in range(0,w,6):
+                    bgr = f.read(18)
+                    bgrIndex = 0
+                    for t in range(6):
+                        color = ((bgr[bgrIndex+2] & 0xF8) << 8) | ((bgr[bgrIndex+1] & 0xFC) << 3) | (bgr[bgrIndex+0] >> 3)
+                        colorData[colorDataIndex] = color >> 8
+                        colorData[colorDataIndex+1] = color
+                        colorDataIndex = colorDataIndex + 2
+                        bgrIndex = bgrIndex + 3
+                tft._writedata(colorData)
 spi.deinit()
