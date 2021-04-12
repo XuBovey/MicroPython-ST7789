@@ -5,9 +5,29 @@ import time
 import math
 
 spi = SPI(2, baudrate=20000000, polarity=0, phase=0, sck=Pin(14), mosi=Pin(13), miso=Pin(12))
-tft=TFT(spi,16,2,15)
+# tft=TFT(spi,16,15,2) #zjy
+tft=TFT(spi,2,19,NULL,) # for skids
 tft.initr()
 tft.rgb(True)
+
+tft.fill(TFT.BLACK)
+print("black")
+time.sleep(5)
+tft.fill(TFT.WHITE)
+print("white")
+time.sleep(5)
+tft.fill(TFT.RED)
+print("red")
+time.sleep(5)
+tft.fill(TFT.GREEN)
+print("green")
+time.sleep(5)
+tft.fill(TFT.BLUE)
+print("blue")
+time.sleep(5)
+tft.fill(TFT.YELLOW)
+print("yellow")
+time.sleep(5)
 
 def testlines(color):
     tft.fill(TFT.BLACK)

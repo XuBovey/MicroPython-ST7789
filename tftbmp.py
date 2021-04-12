@@ -6,7 +6,7 @@ spi = SPI(1, baudrate=80000000, polarity=0, phase=0, sck=Pin(14), mosi=Pin(13), 
 tft=TFT(spi,16,2,15)
 tft.initr()
 tft.rgb(True)
-tft.invertcolor(True)
+# tft.invertcolor(True)
 tft.fill(TFT.BLACK)
 
 # print("black")

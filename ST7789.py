@@ -33,7 +33,8 @@ def TFTColor( aR, aG, aB ) :
      This assumes rgb 565 layout and will be incorrect for bgr.'''
   return ((aR & 0xF8) << 8) | ((aG & 0xFC) << 3) | (aB >> 3)
 
-ScreenSize = (240, 240)
+ScreenSize = (240, 320)
+boardName = "SKIDS_7789"
 
 class TFT(object) :
   """Sainsmart TFT 7789 display driver."""
@@ -101,7 +102,7 @@ class TFT(object) :
     '''Create a 565 rgb TFTColor value'''
     return TFTColor(aR, aG, aB)
 
-  def __init__( self, spi, aDC, aReset, aCS) :
+  def __init__( self, spi, aDC, aCS, aReset=None) :
     """aLoc SPI pin location is either 1 for 'X' or 2 for 'Y'.
        aDC is the DC pin and aReset is the reset pin."""
     self._size = ScreenSize
@@ -111,7 +112,10 @@ class TFT(object) :
     self.tfa = 0                       #top fixed area
     self.bfa = 0                       #bottom fixed area
     self.dc  = machine.Pin(aDC, machine.Pin.OUT, machine.Pin.PULL_DOWN)
-    self.reset = machine.Pin(aReset, machine.Pin.OUT, machine.Pin.PULL_DOWN)
+    if aReset is None:
+      self.reset = None
+    else:
+      self.reset = machine.Pin(aReset, machine.Pin.OUT, machine.Pin.PULL_DOWN)
     self.cs = machine.Pin(aCS, machine.Pin.OUT, machine.Pin.PULL_DOWN)
     self.cs(1)
     self.spi = spi
@@ -434,39 +438,42 @@ class TFT(object) :
     x = self._offset[0] + int(aPos[0])
     y = self._offset[1] + int(aPos[1])
     self._writecommand(TFT.CASET)            #Column address set.
-    self.windowLocData[0] = self._offset[0]
-    self.windowLocData[1] = x
-    self.windowLocData[2] = self._offset[0]
-    self.windowLocData[3] = x
+    self.windowLocData[0] = (x>>8)&0xFF
+    self.windowLocData[1] = x&0xFF
+    self.windowLocData[2] = (x>>8)&0xFF
+    self.windowLocData[3] = x&0xFF
     self._writedata(self.windowLocData)
 
     self._writecommand(TFT.RASET)            #Row address set.
-    self.windowLocData[0] = self._offset[1]
-    self.windowLocData[1] = y
-    self.windowLocData[2] = self._offset[1]
-    self.windowLocData[3] = y
+    self.windowLocData[0] = (y>>8)&0xFF
+    self.windowLocData[1] = y&0xFF
+    self.windowLocData[2] = (y>>8)&0xFF
+    self.windowLocData[3] = y&0xFF
     self._writedata(self.windowLocData)
     self._writecommand(TFT.RAMWR)            #Write to RAM.
 
 #   @micropython.native
   def _setwindowloc( self, aPos0, aPos1 ) :
     '''Set a rectangular area for drawing a color to.'''
+    x1 = self._offset[0] + int(aPos0[0])
+    x2 = self._offset[0] + int(aPos1[0])
+    self.windowLocData[0] = (x1>>8)&0xFF
+    self.windowLocData[1] = x1&0xFF
+    self.windowLocData[2] = (x2>>8)&0xFF
+    self.windowLocData[3] = x2&0xFF
     self._writecommand(TFT.CASET)            #Column address set.
-    self.windowLocData[0] = self._offset[0]
-    self.windowLocData[1] = self._offset[0] + int(aPos0[0])
-    self.windowLocData[2] = self._offset[0]
-    self.windowLocData[3] = self._offset[0] + int(aPos1[0])
     self._writedata(self.windowLocData)
-
+   
+    y1 = self._offset[1] + int(aPos0[1])
+    y2 = self._offset[1] + int(aPos1[1])
+    self.windowLocData[0] = (y1>>8)&0xFF
+    self.windowLocData[1] = y1&0xFF
+    self.windowLocData[2] = (y2>>8)&0xFF
+    self.windowLocData[3] = y2&0xFF
     self._writecommand(TFT.RASET)            #Row address set.
-    self.windowLocData[0] = self._offset[1]
-    self.windowLocData[1] = self._offset[1] + int(aPos0[1])
-    self.windowLocData[2] = self._offset[1]
-    self.windowLocData[3] = self._offset[1] + int(aPos1[1])
     self._writedata(self.windowLocData)
 
     self._writecommand(TFT.RAMWR)            #Write to RAM.
-
   #@micropython.native
   def _writecommand( self, aCommand ) :
     '''Write given command to the device.'''
@@ -501,16 +508,28 @@ class TFT(object) :
   #@micropython.native
   def _reset( self ) :
     '''Reset the device.'''
-    self.dc(0)
-    self.reset(1)
-    time.sleep_us(500)
-    self.reset(0)
-    time.sleep_us(500)
-    self.reset(1)
-    time.sleep_us(500)
+    if self.reset is None:
+      self._writecommand(TFT.SWRESET)
+      time.sleep_ms(100)
+    else:
+      self.dc(0)
+      self.reset(1)
+      time.sleep_us(500)
+      self.reset(0)
+      time.sleep_us(500)
+      self.reset(1)
+      time.sleep_us(500)
+
+  def initr( self ) :
+    if boardName is 'SKIDS_7789':
+      print("skids_lcd_initr")
+      self.skids_lcd_initr()
+    else:
+      print("zj_initr")
+      self.zj_initr()
 
   # for 7789 from zhongjingyuan
-  def initr( self ) :
+  def zj_initr( self ) :
     '''Initialize a red tab version.'''
     self._reset()
 
@@ -576,17 +595,82 @@ class TFT(object) :
     self._writedata(dataGMCTRN)
     time.sleep_us(10)
 
-    self._writecommand(TFT.INVON)
+    self._writecommand(TFT.DISPON)
     time.sleep_us(100)
+
+    self.cs(1)    
+
+  def skids_lcd_initr( self ) :
+    '''Initialize a red tab version.'''
+    self._reset()
+
+    self._writecommand(TFT.SLPOUT)               #out of sleep mode.
+    time.sleep_us(500)
+
+    data1 = bytearray(1)
+    self._writecommand(TFT.MADCTL) 
+    data1[0] = 0x00
+    self._writedata(data1)
+
+    self._writecommand(TFT.COLMOD)
+    data1[0] = 0x05
+    self._writedata(data1)
+    
+    data5 = bytearray([0x0C, 0x0C, 0x00, 0x33, 0x33]) 
+    self._writecommand(TFT.PORCTRL)
+    self._writedata(data5)
+
+    self._writecommand(TFT.GCTRL)
+    data1[0] = 0x35
+    self._writedata(data1)
+
+    self._writecommand(TFT.VCOMS)
+    data1[0] = 0x28
+    self._writedata(data1)
+
+    self._writecommand(TFT.LCMCTRL)               #Power control
+    data1[0] = 0x2c
+    self._writedata(data1)
+
+    data2 = bytearray(2)
+
+    self._writecommand(TFT.VDVVRHEN)               #Power control
+    data1[0] = 0x01
+    self._writedata(data1)
+
+    self._writecommand(TFT.VRHS)               #Power control
+    data1[0] = 0x0b
+    self._writedata(data1)
+
+    self._writecommand(TFT.VDVS)               #Power control
+    data1[0] = 0x20
+    self._writedata(data1)
+
+    self._writecommand(TFT.FRCTRL2)               #FRCTRL2 control
+    data1[0] = 0x0F
+    self._writedata(data1)
+
+    self._writecommand(TFT.PWCTRL1)
+    data2[0] = 0xA4
+    data2[1] = 0xA1
+    self._writedata(data2)
+
+    dataGMCTRP = bytearray([0xd0, 0x01, 0x08, 0x0f, 0x11, 0x2a, 0x36, 0x55, 0x44,
+                            0x3a, 0x0b, 0x06, 0x1f, 0x20])
+    self._writecommand(TFT.GMCTRP1)
+    self._writedata(dataGMCTRP)
+
+    dataGMCTRN = bytearray([0xd0, 0x02, 0x07, 0x0a, 0x0b, 0x18, 0x34, 0x43, 0x4a,
+                            0x2b, 0x1b, 0x1c, 0x22, 0x1f])
+    self._writecommand(TFT.GMCTRN1)
+    self._writedata(dataGMCTRN)
+    time.sleep_us(10)
 
     self._writecommand(TFT.DISPON)
     time.sleep_us(100)
 
-    # self._writecommand(TFT.NORON)                #Normal display on.
-    # time.sleep_us(10)
-
     self.cs(1)    
- 
+
 def maker(  ) :
   t = TFT(1, "X1", "X2")
   print("Initializing")
